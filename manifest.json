@@ -1,0 +1,13 @@
+{
+  "manifest_version": 2,
+  "name": "Gitter Bookmark Button",
+  "version": "0.1",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://gitter.im/*"
+      ],
+      "js": ["content.js"]
+    }
+  ]
+}
