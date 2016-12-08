@@ -19,7 +19,7 @@ console.log('Script started');
         model.chatItems = view.getChatItems(chatItemClass);
         
         if (model.chatItems) {
-          console.log('Found these chat items:', model.chatItems.slice(-3)  );
+          console.log('Found these chat items:', model.chatItems.slice(-5)  );
           
           view.listenForNewChatItems(model.chatContainerId);
         }
@@ -58,10 +58,14 @@ console.log('Script started');
       const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
           if ((mutation.addedNodes || []).length > 0) {
+            if ( /^chat-item\smodel/.test(mutation.addedNodes[0].className) ||
+                 /^chat-item\sis/.test(mutation.addedNodes[0].className) ) {
+              console.log('=====================');
+              console.log(mutation.addedNodes);
+              console.log(mutation.addedNodes[0].className);
+              console.log(mutation.addedNodes[0].innerHTML);
+            }
             
-            console.log('=====================');
-            console.log(mutation.addedNodes[0]);
-            console.log(mutation.addedNodes[0].innerHTML.trim());
           }
         });    
       });
