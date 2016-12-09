@@ -6,11 +6,18 @@ console.log('Script started');
     iFrameId: 'content-frame',
     chatItemClass: 'chat-item',
     chatContainerId: 'chat-container',
-    chatItems: null
+    chatItems: null,
+    pathname: null
   };
 
   var controller = {
     init: function() {
+      
+      model.pathname = this.getPathname();
+      console.log(this.getPathname);
+      console.log(typeof this.getPathname);
+      console.log(model.pathname);
+      
       const { iFrameId, chatItemClass } = model;
       
       view.init(iFrameId);
@@ -19,13 +26,19 @@ console.log('Script started');
         model.chatItems = view.getChatItems(chatItemClass);
         
         if (model.chatItems) {
-          console.log('Found these chat items:', model.chatItems.slice(-5)  );
+          console.log('Found these chat items:', model.chatItems );
           
           view.listenForNewChatItems(model.chatContainerId);
         }
         
       }
-    },    
+    },
+    
+    getPathname: function() {
+      return window.location.pathname;
+    }
+    
+    
   };
   
   var view = { 
@@ -46,6 +59,7 @@ console.log('Script started');
     getChatItems: function(chatItemClass) {
       // Individual messages are wrapped 
       // inside a div with a 'chat-item' class
+      console.log('gettingChatItems');
       const chatItems = this.docInsideIFrame.getElementsByClassName(chatItemClass);
 
       return chatItems ? Array.from(chatItems).map(el => el.innerHTML) : null;
@@ -56,14 +70,17 @@ console.log('Script started');
       
       // create an observer instance
       const observer = new MutationObserver(function(mutations) {
+        
+        // const mutationDivs = [];
         mutations.forEach(function(mutation) {
           if ((mutation.addedNodes || []).length > 0) {
             if ( /^chat-item\smodel/.test(mutation.addedNodes[0].className) ||
                  /^chat-item\sis/.test(mutation.addedNodes[0].className) ) {
               console.log('=====================');
-              console.log(mutation.addedNodes);
+              // console.log(mutation.addedNodes);
               console.log(mutation.addedNodes[0].className);
               console.log(mutation.addedNodes[0].innerHTML);
+              // mutationDivs.push(mutation.addedNodes[0].innerHTML);
             }
             
           }
@@ -80,7 +97,9 @@ console.log('Script started');
         observer.observe(target, config);
       } else {
         setTimeout(function() {
+                    
           target = view.docInsideIFrame.getElementById(chatContainerId);
+          console.log('New observer after 5 sec, target ', target);
           if (target) {
             observer.observe(target, config);
           }
@@ -90,6 +109,7 @@ console.log('Script started');
     
   };
 
-  window.onload = controller.init();
+  window.onload = controller.init.bind(controller);
+
 
 }());
