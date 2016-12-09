@@ -3,20 +3,17 @@ console.log('Script started');
 (function() {
 
   var model = {
+    pathname: null,
     iFrameId: 'content-frame',
     chatItemClass: 'chat-item',
     chatContainerId: 'chat-container',
-    chatItems: null,
-    pathname: null
+    chatItems: null
   };
 
   var controller = {
     init: function() {
       
       model.pathname = this.getPathname();
-      console.log(this.getPathname);
-      console.log(typeof this.getPathname);
-      console.log(model.pathname);
       
       const { iFrameId, chatItemClass } = model;
       
@@ -28,7 +25,11 @@ console.log('Script started');
         if (model.chatItems) {
           console.log('Found these chat items:', model.chatItems );
           
-          view.listenForNewChatItems(model.chatContainerId);
+          setTimeout(() => {
+            console.log('After 5 sec, listening for new items');
+            view.listenForNewChatItems(model.chatContainerId);
+          }, 5000);
+          
         }
         
       }
@@ -36,9 +37,21 @@ console.log('Script started');
     
     getPathname: function() {
       return window.location.pathname;
+    },
+    
+    processNewChatItem: function(newItem) {
+      model.chatItems.push(newItem);
+      console.log(model.chatItems);
+    },
+    
+    createNewChatItemObject: function(object) {
+      const { className, innerHTML } = object;
+      return {
+        className: className,
+        innerHTML: innerHTML
+      };
     }
-    
-    
+
   };
   
   var view = { 
@@ -59,28 +72,25 @@ console.log('Script started');
     getChatItems: function(chatItemClass) {
       // Individual messages are wrapped 
       // inside a div with a 'chat-item' class
-      console.log('gettingChatItems');
       const chatItems = this.docInsideIFrame.getElementsByClassName(chatItemClass);
-
-      return chatItems ? Array.from(chatItems).map(el => el.innerHTML) : null;
+      
+      // console.log('Full chat items:', chatItems);
+      
+      return chatItems ? 
+        Array.from(chatItems).map(item => controller.createNewChatItemObject(item)) : null;
     },
     
     listenForNewChatItems: function(chatContainerId) {
-      console.log('Listening for new chat items');
       
       // create an observer instance
       const observer = new MutationObserver(function(mutations) {
-        
-        // const mutationDivs = [];
         mutations.forEach(function(mutation) {
           if ((mutation.addedNodes || []).length > 0) {
             if ( /^chat-item\smodel/.test(mutation.addedNodes[0].className) ||
                  /^chat-item\sis/.test(mutation.addedNodes[0].className) ) {
               console.log('=====================');
-              // console.log(mutation.addedNodes);
-              console.log(mutation.addedNodes[0].className);
-              console.log(mutation.addedNodes[0].innerHTML);
-              // mutationDivs.push(mutation.addedNodes[0].innerHTML);
+              let newChatItemObject = controller.createNewChatItemObject(mutation.addedNodes[0]);
+              controller.processNewChatItem(newChatItemObject);
             }
             
           }
@@ -92,14 +102,14 @@ console.log('Script started');
        
       // pass in the target node, as well as the observer options
       let target = view.docInsideIFrame.getElementById(chatContainerId);
-      console.log('target', target);
+      // console.log('target', target);
+      
       if (target) {
         observer.observe(target, config);
       } else {
-        setTimeout(function() {
-                    
+        setTimeout(() => {
           target = view.docInsideIFrame.getElementById(chatContainerId);
-          console.log('New observer after 5 sec, target ', target);
+          console.log('Startup backup observer after 5 sec, target', target);
           if (target) {
             observer.observe(target, config);
           }
