@@ -12,22 +12,59 @@ console.log('Script started');
 
   var controller = {
     init: function() {
+      const { iFrameId, chatItemClass } = model;
+      var fromElement;
       
       model.pathname = this.getPathname();
-      
-      const { iFrameId, chatItemClass } = model;
+            
+      let chatItems;
       
       view.init(iFrameId);
       
       if (view.docInsideIFrame) {
-        model.chatItems = view.getChatItems(chatItemClass);
+
+        chatItems = view.getChatItems(chatItemClass);
         
-        if (model.chatItems) {
-          console.log('Found these chat items:', model.chatItems );
+        if (chatItems) {
+          // console.log('Found these chat items:', chatItems);
+          
+          chatItems.forEach(item => {
+            console.log(item);
+            fromElement = view.docInsideIFrame.getElementsByClassName('chat-item__username js-chat-item-from')[0];
+            console.log('fromElement', fromElement);
+            
+            if (fromElement) {
+              
+              // create element
+              // let newEle = document.createElement('p');
+              // newEle.className = 'newElement';
+              // newEle.textContent = 'Star Star';
+              // console.log('newElem', newEle);
+              
+              // console.log('fromElement.textContent befor', fromElement.textContent);
+              setTimeout(() => {
+                console.log('inserting after 10 sec');
+                fromElement.textContent = '@Samatar26';
+                console.log('fromElement', fromElement);
+              }, 10000);
+              
+              // console.log('fromElement.textContent after', fromElement.textContent);
+
+              // fromElement.parentNode.appendChild(newEle);
+                  
+                                        
+              // fromElement.parentNode.insertBefore(newEle, fromElement.nextSibling);
+              
+              
+              
+            }
+            
+          });
           
           setTimeout(() => {
-            console.log('After 5 sec, listening for new items');
-            view.listenForNewChatItems(model.chatContainerId);
+            // console.log('fromElement after 5 sec', fromElement);
+            // console.log('After 5 sec, listening for new items');
+            // view.listenForNewChatItems(model.chatContainerId);
           }, 5000);
           
         }
@@ -40,8 +77,9 @@ console.log('Script started');
     },
     
     processNewChatItem: function(newItem) {
-      model.chatItems.push(newItem);
-      console.log(model.chatItems);
+      
+      // model.chatItems.push(newItem);
+      // console.log(model.chatItems);
     },
     
     createNewChatItemObject: function(object) {
@@ -76,8 +114,8 @@ console.log('Script started');
       
       // console.log('Full chat items:', chatItems);
       
-      return chatItems ? 
-        Array.from(chatItems).map(item => controller.createNewChatItemObject(item)) : null;
+      return chatItems ? Array.from(chatItems) : null;
+
     },
     
     listenForNewChatItems: function(chatContainerId) {
