@@ -1,163 +1,117 @@
 console.log('Script started');
 
-(function() {
-
-  var model = {
-    pathname: null,
-    iFrameId: 'content-frame',
-    chatItemClass: 'chat-item',
-    chatContainerId: 'chat-container',
-    chatItems: null
-  };
-
-  var controller = {
-    init: function() {
-      const { iFrameId, chatItemClass } = model;
-      var fromElement;
-      
-      model.pathname = this.getPathname();
-            
-      let chatItems;
-      
-      view.init(iFrameId);
-      
-      if (view.docInsideIFrame) {
-
-        chatItems = view.getChatItems(chatItemClass);
-        
-        if (chatItems) {
-          // console.log('Found these chat items:', chatItems);
-          
-          chatItems.forEach(item => {
-            console.log(item);
-            fromElement = view.docInsideIFrame.getElementsByClassName('chat-item__username js-chat-item-from')[0];
-            console.log('fromElement', fromElement);
-            
-            if (fromElement) {
-              
-              // create element
-              // let newEle = document.createElement('p');
-              // newEle.className = 'newElement';
-              // newEle.textContent = 'Star Star';
-              // console.log('newElem', newEle);
-              
-              // console.log('fromElement.textContent befor', fromElement.textContent);
-              setTimeout(() => {
-                console.log('inserting after 10 sec');
-                fromElement.textContent = '@Samatar26';
-                console.log('fromElement', fromElement);
-              }, 10000);
-              
-              // console.log('fromElement.textContent after', fromElement.textContent);
-
-              // fromElement.parentNode.appendChild(newEle);
-                  
-                                        
-              // fromElement.parentNode.insertBefore(newEle, fromElement.nextSibling);
-              
-              
-              
-            }
-            
-          });
-          
-          setTimeout(() => {
-            // console.log('fromElement after 5 sec', fromElement);
-            // console.log('After 5 sec, listening for new items');
-            // view.listenForNewChatItems(model.chatContainerId);
-          }, 5000);
-          
-        }
-        
-      }
-    },
-    
-    getPathname: function() {
-      return window.location.pathname;
-    },
-    
-    processNewChatItem: function(newItem) {
-      
-      // model.chatItems.push(newItem);
-      // console.log(model.chatItems);
-    },
-    
-    createNewChatItemObject: function(object) {
-      const { className, innerHTML } = object;
-      return {
-        className: className,
-        innerHTML: innerHTML
-      };
-    }
-
-  };
+function modifyPage() {  
   
-  var view = { 
-    chatIFrame: null,
-    docInsideIFrame: null,
-    
-    init: function(iFrameId) {
-      // Find iFrame holding the chat
-      this.chatIFrame = document.getElementById(iFrameId);
-      
-      if (this.chatIFrame) {
-        // Access the document within the iFrame
-        this.docInsideIFrame = this.chatIFrame.contentDocument || this.chatIFrame.contentWindow.document;
-      }
-      
-    },
-    
-    getChatItems: function(chatItemClass) {
-      // Individual messages are wrapped 
-      // inside a div with a 'chat-item' class
-      const chatItems = this.docInsideIFrame.getElementsByClassName(chatItemClass);
-      
-      // console.log('Full chat items:', chatItems);
-      
-      return chatItems ? Array.from(chatItems) : null;
+  console.log('in modify page');
+  
+  // Find chat iFrame
+  var chatIFrame = document.getElementById('content-frame');
 
-    },
+  // Access the document within the iFrame
+  var docInsideIFrame = chatIFrame.contentDocument || chatIFrame.contentWindow.document;  
+  
+  // Get an array of DOM nodes with chat messages
+  var chatItems = Array.from(docInsideIFrame.getElementsByClassName('chat-item'));
+      
+  // Variable for DOM element to be modified
+  var chatElem;  
+  
+  // Loop through the chat messages
+  chatItems.forEach(function(item) {
+    // console.log('item', item);
     
-    listenForNewChatItems: function(chatContainerId) {
-      
-      // create an observer instance
-      const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          if ((mutation.addedNodes || []).length > 0) {
-            if ( /^chat-item\smodel/.test(mutation.addedNodes[0].className) ||
-                 /^chat-item\sis/.test(mutation.addedNodes[0].className) ) {
-              console.log('=====================');
-              let newChatItemObject = controller.createNewChatItemObject(mutation.addedNodes[0]);
-              controller.processNewChatItem(newChatItemObject);
-            }
-            
-          }
-        });    
-      });
-      
-      // configuration of the observer:
-      const config = { attributes: false, childList: true, characterData: false, subtree: true };
-       
-      // pass in the target node, as well as the observer options
-      let target = view.docInsideIFrame.getElementById(chatContainerId);
-      // console.log('target', target);
-      
-      if (target) {
-        observer.observe(target, config);
-      } else {
-        setTimeout(() => {
-          target = view.docInsideIFrame.getElementById(chatContainerId);
-          console.log('Startup backup observer after 5 sec, target', target);
-          if (target) {
-            observer.observe(target, config);
-          }
-        }, 5000);
-      }
+    chatElem = item.getElementsByClassName('chat-item__details')[0];
+    
+    let favElem = document.createElement('i');
+    favElem.className = 'icon-star-empty';
+    favElem.style.color = '#C9ABD2';
+    favElem.style.verticalAlign = 'middle';
+    favElem.style.cursor = 'pointer';
+    favElem.title = 'Click to bookmark this post.\nDouble click to see all your bookmarks.';
+    
+    favElem.addEventListener('click', handleFavSingleClick, false);
+    favElem.addEventListener('dblclick', handleFavDoubleClick, false);
+    
+    function handleFavSingleClick(e) {
+      console.log('clicked');
+      e.target.style.color = '#753A88';
+      e.target.removeEventListener('click', handleFavSingleClick, false);
     }
     
-  };
+    function handleFavDoubleClick(e) {
+      console.log('double clicked');
+    }
+    
+    if (chatElem) {
+      chatElem.appendChild(favElem);
+      // console.log('chatElem', chatElem);
+    }
 
-  window.onload = controller.init.bind(controller);
+  });
+
+}
+
+window.onload = function() {
+  setTimeout(function() {
+    modifyPage();
+    addFavOnNewPage();
+  }, 1000);
+};
 
 
-}());
+function addFavOnNewPage() {
+  console.log('adding favs');
+  
+  // Find iFrame holding the chat
+  const chatIFrame = document.getElementById('content-frame');
+  
+  // Access the document within the iFrame
+  const docInsideIFrame = chatIFrame.contentDocument || chatIFrame.contentWindow.document;
+  
+  // Find chat parent
+  // const elemToObserve = docInsideIFrame.getElementsByClassName('chat-header__action-grouping')[0];
+  
+  const elemToObserve = docInsideIFrame.getElementById('chat-container');
+  
+  
+  // WORKS !!!
+  // const elemToObserve = docInsideIFrame.getElementById('header');
+  
+  console.log('elemToObserve', elemToObserve);
+  
+  // Used to call the function only once
+  let isSecondMutation = false;
+  let wasFunctionCalled = false;
+  
+  // create an observer instance
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (isSecondMutation === true && wasFunctionCalled === false) {
+        console.log(mutation);
+        isSecondMutation = false;
+        wasFunctionCalled = true;
+        
+        setTimeout(() => {
+          modifyPage();
+        }, 500);
+        
+        setTimeout(() => {
+          wasFunctionCalled = false;
+        }, 2500);
+
+      } else {
+        isSecondMutation = true;
+      }
+    });
+  });
+  
+  // configuration of the observer:
+  const config = { attributes: true, childList: true, characterData: true, subtree: false };
+  
+  // WORKS !!!
+  // const config = { attributes: true, childList: true, characterData: true, subtree: false };
+   
+  // pass in the target node, as well as the observer options
+  observer.observe(elemToObserve, config);
+
+}
